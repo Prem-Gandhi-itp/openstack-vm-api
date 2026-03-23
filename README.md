@@ -1,7 +1,7 @@
 # OpenStack VM Lifecycle Management API
 
 > A production-ready REST API for managing OpenStack virtual machine lifecycle operations.
-> Built with **FastAPI · Python 3.11 · openstacksdk · Docker**
+> Built with **FastAPI · Python 3.11 · openstacksdk · uv**
 
 [![CI](https://github.com/YOUR_USERNAME/openstack-vm-api/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/openstack-vm-api/actions)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/)
@@ -28,32 +28,24 @@
 
 ## 1. Quick Start
 
-### Option A — Docker (zero setup, recommended)
+### Prerequisites
+
+- Python 3.11+
+- [uv](https://docs.astral.sh/uv/) — fast Python package manager
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/openstack-vm-api.git
-cd openstack-vm-api
-docker-compose up --build
+# Install uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-- API: http://localhost:8000
-- Swagger UI: http://localhost:8000/api/v1/docs
-- ReDoc: http://localhost:8000/api/v1/redoc
-
-The default config runs in **mock mode** — no OpenStack cluster needed.
-Four seeded VMs are available immediately.
-
-### Option B — Local Python with uv
+### Setup & Run
 
 ```bash
-# Install uv if you don't have it
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Clone and set up
+# Clone the repo
 git clone https://github.com/YOUR_USERNAME/openstack-vm-api.git
 cd openstack-vm-api
 
-# Create virtual environment and install all dependencies in one command
+# Install all dependencies
 uv sync
 
 # Copy environment config
@@ -62,6 +54,13 @@ cp .env.example .env
 # Run with hot-reload
 uv run uvicorn app.main:app --reload --port 8000
 ```
+
+The default config runs in **mock mode** — no OpenStack cluster needed.
+Four seeded VMs are available immediately.
+
+- API: http://localhost:8000
+- Swagger UI: http://localhost:8000/api/v1/docs
+- ReDoc: http://localhost:8000/api/v1/redoc
 
 ### Verify it's running
 
@@ -85,53 +84,53 @@ curl http://localhost:8000/api/v1/vms/ -H "X-API-Key: dev-api-key-12345"
 
 ### VMs — CRUD
 
-| Method   | Path        | Status | Description                     |
-|----------|-------------|--------|---------------------------------|
-| `GET`    | `/vms`      | 200    | List VMs (paginated, filterable)|
-| `POST`   | `/vms`      | 201    | Provision a new VM              |
-| `GET`    | `/vms/{id}` | 200    | Get full VM details             |
-| `PUT`    | `/vms/{id}` | 200    | Update VM name / metadata       |
-| `DELETE` | `/vms/{id}` | 204    | Permanently terminate VM        |
+| Method   | Path        | Status | Description                      |
+|----------|-------------|--------|----------------------------------|
+| `GET`    | `/vms`      | 200    | List VMs (paginated, filterable) |
+| `POST`   | `/vms`      | 201    | Provision a new VM               |
+| `GET`    | `/vms/{id}` | 200    | Get full VM details              |
+| `PUT`    | `/vms/{id}` | 200    | Update VM name / metadata        |
+| `DELETE` | `/vms/{id}` | 204    | Permanently terminate VM         |
 
 ### VMs — Lifecycle Actions
 
-| Method   | Path                               | Description                                |
-|----------|------------------------------------|---------------------------------------------|
-| `POST`   | `/vms/{id}/start`                  | Start a stopped / suspended VM             |
-| `POST`   | `/vms/{id}/stop`                   | Graceful shutdown (ACPI signal)            |
-| `POST`   | `/vms/{id}/reboot`                 | Soft or hard reboot                        |
-| `POST`   | `/vms/{id}/suspend`                | Suspend — save RAM state to disk           |
-| `POST`   | `/vms/{id}/resume`                 | Resume from suspended                      |
-| `POST`   | `/vms/{id}/pause`                  | Freeze at hypervisor level                 |
-| `POST`   | `/vms/{id}/unpause`                | Unfreeze                                   |
-| `POST`   | `/vms/{id}/lock`                   | Lock VM — prevents all mutations           |
-| `POST`   | `/vms/{id}/unlock`                 | Unlock VM                                  |
-| `POST`   | `/vms/{id}/shelve`                 | Shelve — free compute, preserve data       |
-| `POST`   | `/vms/{id}/unshelve`               | Restore shelved VM to ACTIVE               |
-| `POST`   | `/vms/{id}/rescue`                 | Boot into rescue image for OS recovery     |
-| `POST`   | `/vms/{id}/unrescue`               | Exit rescue mode back to ACTIVE            |
-| `POST`   | `/vms/{id}/resize`                 | Schedule resize to new flavor              |
-| `POST`   | `/vms/{id}/resize/confirm`         | Confirm a pending resize                   |
-| `POST`   | `/vms/{id}/migrate`                | Cold-migrate VM to another host            |
-| `POST`   | `/vms/{id}/live-migrate`           | Live-migrate with zero downtime            |
-| `POST`   | `/vms/{id}/evacuate`               | Evacuate VM off a failed host              |
-| `POST`   | `/vms/{id}/backup`                 | Scheduled backup with rotation             |
-| `GET`    | `/vms/{id}/console`                | Get VNC/SPICE console URL                  |
-| `GET`    | `/vms/{id}/metrics`                | CPU, memory, disk, network stats           |
-| `GET`    | `/vms/{id}/metadata`               | Get VM metadata key-value pairs            |
-| `DELETE` | `/vms/{id}/metadata`               | Delete specific metadata keys              |
-| `POST`   | `/vms/{id}/security-groups/add`    | Add security group to a running VM         |
-| `POST`   | `/vms/{id}/security-groups/remove` | Remove security group from VM              |
-| `POST`   | `/vms/{id}/floating-ips/add`       | Attach a floating IP to a VM              |
-| `POST`   | `/vms/{id}/floating-ips/remove`    | Detach a floating IP from a VM            |
+| Method   | Path                               | Description                             |
+|----------|------------------------------------|------------------------------------------|
+| `POST`   | `/vms/{id}/start`                  | Start a stopped / suspended VM          |
+| `POST`   | `/vms/{id}/stop`                   | Graceful shutdown (ACPI signal)         |
+| `POST`   | `/vms/{id}/reboot`                 | Soft or hard reboot                     |
+| `POST`   | `/vms/{id}/suspend`                | Suspend — save RAM state to disk        |
+| `POST`   | `/vms/{id}/resume`                 | Resume from suspended                   |
+| `POST`   | `/vms/{id}/pause`                  | Freeze at hypervisor level              |
+| `POST`   | `/vms/{id}/unpause`                | Unfreeze                                |
+| `POST`   | `/vms/{id}/lock`                   | Lock VM — prevents all mutations        |
+| `POST`   | `/vms/{id}/unlock`                 | Unlock VM                               |
+| `POST`   | `/vms/{id}/shelve`                 | Shelve — free compute, preserve data   |
+| `POST`   | `/vms/{id}/unshelve`               | Restore shelved VM to ACTIVE            |
+| `POST`   | `/vms/{id}/rescue`                 | Boot into rescue image for OS recovery  |
+| `POST`   | `/vms/{id}/unrescue`               | Exit rescue mode back to ACTIVE         |
+| `POST`   | `/vms/{id}/resize`                 | Schedule resize to new flavor           |
+| `POST`   | `/vms/{id}/resize/confirm`         | Confirm a pending resize                |
+| `POST`   | `/vms/{id}/migrate`                | Cold-migrate VM to another host         |
+| `POST`   | `/vms/{id}/live-migrate`           | Live-migrate with zero downtime         |
+| `POST`   | `/vms/{id}/evacuate`               | Evacuate VM off a failed host           |
+| `POST`   | `/vms/{id}/backup`                 | Scheduled backup with rotation          |
+| `GET`    | `/vms/{id}/console`                | Get VNC/SPICE console URL               |
+| `GET`    | `/vms/{id}/metrics`                | CPU, memory, disk, network stats        |
+| `GET`    | `/vms/{id}/metadata`               | Get VM metadata key-value pairs         |
+| `DELETE` | `/vms/{id}/metadata`               | Delete specific metadata keys           |
+| `POST`   | `/vms/{id}/security-groups/add`    | Add security group to a running VM      |
+| `POST`   | `/vms/{id}/security-groups/remove` | Remove security group from VM           |
+| `POST`   | `/vms/{id}/floating-ips/add`       | Attach a floating IP to a VM           |
+| `POST`   | `/vms/{id}/floating-ips/remove`    | Detach a floating IP from a VM         |
 
 ### Snapshots
 
-| Method   | Path                            | Description              |
-|----------|---------------------------------|--------------------------|
-| `GET`    | `/vms/{id}/snapshots`           | List snapshots           |
-| `POST`   | `/vms/{id}/snapshots`           | Create snapshot          |
-| `DELETE` | `/vms/{id}/snapshots/{snap_id}` | Delete snapshot          |
+| Method   | Path                            | Description    |
+|----------|---------------------------------|----------------|
+| `GET`    | `/vms/{id}/snapshots`           | List snapshots |
+| `POST`   | `/vms/{id}/snapshots`           | Create snapshot|
+| `DELETE` | `/vms/{id}/snapshots/{snap_id}` | Delete snapshot|
 
 ### Catalog
 
@@ -142,17 +141,17 @@ curl http://localhost:8000/api/v1/vms/ -H "X-API-Key: dev-api-key-12345"
 
 ### Status Codes
 
-| Code | Meaning                                    |
-|------|--------------------------------------------|
-| 200  | Success                                    |
-| 201  | Created                                    |
-| 204  | Deleted (no body)                          |
-| 401  | Missing API key                            |
-| 403  | Invalid API key                            |
-| 404  | VM / snapshot not found                    |
-| 409  | VM in wrong state, or VM is locked         |
-| 422  | Request schema validation failure          |
-| 500  | Internal / OpenStack error                 |
+| Code | Meaning                                 |
+|------|-----------------------------------------|
+| 200  | Success                                 |
+| 201  | Created                                 |
+| 204  | Deleted (no body)                       |
+| 401  | Missing API key                         |
+| 403  | Invalid API key                         |
+| 404  | VM / snapshot not found                 |
+| 409  | VM in wrong state, or VM is locked      |
+| 422  | Request schema validation failure       |
+| 500  | Internal / OpenStack error              |
 
 ---
 
@@ -233,7 +232,7 @@ curl -i -X POST http://localhost:8000/api/v1/vms/{id}/lock \
   -H "Content-Type: application/json" \
   -d '{"locked_reason": "maintenance window"}'
 
-# Try to stop while locked
+# Try to stop while locked — returns 409
 curl -i -X POST http://localhost:8000/api/v1/vms/{id}/stop \
   -H "X-API-Key: dev-api-key-12345"
 # HTTP/1.1 409 Conflict
@@ -243,13 +242,13 @@ curl -i -X POST http://localhost:8000/api/v1/vms/{id}/stop \
 ### Resize VM (two-step)
 
 ```bash
-# Step 1 — schedule
+# Step 1 — schedule resize
 curl -i -X POST http://localhost:8000/api/v1/vms/{id}/resize \
   -H "X-API-Key: dev-api-key-12345" \
   -H "Content-Type: application/json" \
   -d '{"flavor_id": "m1.large"}'
 
-# Step 2 — confirm
+# Step 2 — confirm resize
 curl -i -X POST http://localhost:8000/api/v1/vms/{id}/resize/confirm \
   -H "X-API-Key: dev-api-key-12345"
 ```
@@ -335,7 +334,7 @@ curl -i -X POST http://localhost:8000/api/v1/vms/ \
 flowchart TD
     CLIENT["Client — curl / Swagger UI / SDK"]
 
-    subgraph DOCKER["Docker Container"]
+    subgraph APP["FastAPI Application"]
         direction TB
 
         subgraph ENTRY["Entry Point"]
@@ -373,10 +372,8 @@ flowchart TD
         NEWACT["integration/test_new_actions.py — 46 tests"]
     end
 
-    subgraph DEVOPS["DevOps"]
-        DOCKERFILE["Dockerfile — 2-stage build · non-root appuser"]
-        COMPOSE["docker-compose.yml — one command startup"]
-        CI[".github/workflows/ci.yml — lint → tests → docker build"]
+    subgraph CI["CI/CD"]
+        WORKFLOW[".github/workflows/ci.yml\nlint → 116 tests → passes\nPython 3.11 + 3.12"]
     end
 
     subgraph OPENSTACK["OpenStack Cluster — real mode only"]
@@ -400,7 +397,6 @@ flowchart TD
     SCHEMAS -.->|"validates"| ENDPOINTS
     EXCEPTIONS -.->|"caught by"| ENDPOINTS
     CONFIG -.->|"read by"| FACTORY
-    DOCKERFILE --> COMPOSE
     CI --> TESTS
 ```
 
@@ -424,10 +420,10 @@ flowchart TD
           ▼
        SHUTOFF ──── start ──► ACTIVE
 
-  ACTIVE ──shelve──► SHELVED ──unshelve──► ACTIVE
-  ACTIVE ──rescue──► RESCUE  ──unrescue──► ACTIVE
+  ACTIVE ──shelve──► SHELVED   ──unshelve──► ACTIVE
+  ACTIVE ──rescue──► RESCUE    ──unrescue──► ACTIVE
   ACTIVE ──lock───► ACTIVE (locked=true, all mutations rejected)
-  ACTIVE ──live-migrate──► ACTIVE (moved to new host, zero downtime)
+  ACTIVE ──live-migrate──► ACTIVE (new host, zero downtime)
   ACTIVE/SHUTOFF ──migrate──► VERIFY_RESIZE (confirm to finalize)
 ```
 
@@ -439,7 +435,7 @@ flowchart TD
 FastAPI was chosen for async support (OpenStack calls are network I/O), Pydantic integration (request validation, response serialisation, and OpenAPI docs all from one model), and dependency injection via `Depends()` which makes swapping mock vs real service a one-liner.
 
 **Mock / Real toggle**
-The `MOCK_OPENSTACK` flag means anyone can run the full API with `docker-compose up` without an OpenStack cluster. The factory (`services/factory.py`) caches the real service as a singleton via `@lru_cache` so the Keystone auth happens once at startup.
+The `MOCK_OPENSTACK` flag means anyone can run the full API with `uv run uvicorn app.main:app` without an OpenStack cluster. The factory (`services/factory.py`) caches the real service as a singleton via `@lru_cache` so the Keystone auth happens once at startup.
 
 **Domain exceptions → HTTP codes**
 `VMNotFoundError`, `InvalidVMStateError`, `VMLockedError` are raised in the service layer and caught in endpoint handlers. Business logic stays out of the HTTP layer and the service layer is independently testable.
@@ -478,17 +474,17 @@ openstack-vm-api/
 │           ├── vms.py               # CRUD
 │           ├── actions.py           # 24 lifecycle action endpoints
 │           ├── snapshots.py         # Snapshot CRUD
-│           └── catalog.py           # Flavors + images
+│           └── catalog.py           # Flavors + images catalog
 │
 ├── tests/
-│   ├── unit/test_vm_service.py      # 31 service-layer unit tests
+│   ├── unit/
+│   │   └── test_vm_service.py       # 31 service-layer unit tests
 │   └── integration/
 │       ├── test_api.py              # 39 full HTTP integration tests
 │       └── test_new_actions.py      # 46 tests for new SDK operations
 │
-├── .github/workflows/ci.yml         # GitHub Actions CI pipeline
-├── Dockerfile                       # Multi-stage build, non-root user
-├── docker-compose.yml               # One-command local environment
+├── .github/
+│   └── workflows/ci.yml             # GitHub Actions CI pipeline
 ├── pyproject.toml                   # Project config, uv + pytest settings
 ├── requirements.txt                 # Python dependencies
 ├── .env.example                     # Environment variable template
@@ -519,6 +515,7 @@ All configuration is via environment variables or a `.env` file.
 ### Mock mode (default — zero credentials needed)
 
 ```bash
+# .env
 MOCK_OPENSTACK=true
 VALID_API_KEYS=["dev-api-key-12345"]
 ```
@@ -526,6 +523,7 @@ VALID_API_KEYS=["dev-api-key-12345"]
 ### Real OpenStack mode
 
 ```bash
+# .env
 MOCK_OPENSTACK=false
 OS_AUTH_URL=http://your-openstack-ip:5000/v3
 OS_USERNAME=admin
@@ -545,14 +543,14 @@ This project uses [**uv**](https://docs.astral.sh/uv/) — a fast Python package
 ### Setup
 
 ```bash
-# 1. Install uv (if not already installed)
+# 1. Install uv
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # 2. Clone the repo
 git clone https://github.com/YOUR_USERNAME/openstack-vm-api.git
 cd openstack-vm-api
 
-# 3. Create virtual environment and install all dependencies
+# 3. Install all dependencies (creates .venv automatically)
 uv sync
 
 # 4. Copy environment config
@@ -574,10 +572,10 @@ uvicorn app.main:app --reload
 
 ```bash
 # Add a new dependency
-uv add fastapi
+uv add requests
 
 # Add a dev-only dependency
-uv add --dev pytest
+uv add --dev pytest-mock
 
 # Run any command inside the project venv
 uv run pytest tests/
@@ -588,12 +586,13 @@ uv run ruff check app/ tests/
 # Format
 uv run black app/ tests/
 
-# Show installed packages
+# Show all installed packages
 uv pip list
 ```
 
 ### Why uv?
-uv is 10-100x faster than pip for installs, automatically manages the virtual environment, and reads dependencies from `pyproject.toml`. A single `uv sync` replaces the old `python -m venv venv && pip install -r requirements.txt` workflow.
+
+uv is 10-100x faster than pip, automatically manages virtual environments, and uses `pyproject.toml` as its single source of truth. One `uv sync` replaces the old `python -m venv venv && pip install -r requirements.txt` workflow.
 
 ---
 
@@ -626,11 +625,10 @@ open htmlcov/index.html
 
 ## 10. Deployment
 
-### Docker Compose (local / staging)
+### Run locally
 
 ```bash
-docker-compose up --build -d
-docker-compose logs -f
+uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
 ```
 
 ### Connect to real OpenStack
@@ -643,18 +641,19 @@ OS_USERNAME=myuser
 OS_PASSWORD=mypassword
 OS_PROJECT_NAME=myproject
 
-docker-compose up --build
+# Run
+uv run uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
 ### Production checklist
 
 - [ ] Replace API key auth with JWT / OAuth2
-- [ ] Store credentials in Vault / AWS Secrets Manager
+- [ ] Store credentials in a secrets manager (Vault / AWS Secrets Manager)
 - [ ] Enable Redis for distributed rate limiting
 - [ ] Configure TLS termination at nginx / load balancer
 - [ ] Set up log aggregation (Datadog / ELK)
 - [ ] Add Prometheus `/metrics` endpoint
-- [ ] Deploy to Kubernetes (see Sprint 6 in roadmap)
+- [ ] Containerise with Docker and deploy to Kubernetes (see Sprint 7)
 
 ---
 
@@ -667,7 +666,7 @@ docker-compose up --build
 
 ### Sprint 2 — Operations & Async
 - [ ] **Redis rate limiting** — sliding window, 100 req/min per key (currently in-memory only)
-- [ ] **Async task queue** (Celery) — long-running ops (create, resize) return a task ID; client polls `GET /tasks/{id}`
+- [ ] **Async task queue** (Celery) — long-running ops return a task ID; client polls `GET /tasks/{id}`
 - [ ] **`POST /vms` returns `202 Accepted`** with task ID instead of blocking until ACTIVE
 - [ ] **WebSocket status stream** — push VM state transitions to clients in real time
 
@@ -686,11 +685,11 @@ docker-compose up --build
 
 ### Sprint 5 — Real OpenStack Integration (Full Production)
 
-The current prototype uses a mock service for local development. The long-term goal is to **migrate entirely to real OpenStack** using `openstack_real.py` backed by a live cluster. This sprint covers all remaining SDK operations from the [official openstacksdk compute documentation](https://docs.openstack.org/openstacksdk/latest/user/proxies/compute.html) that are not yet exposed as FastAPI endpoints:
+The current prototype uses a mock service for local development. The long-term goal is to **migrate entirely to real OpenStack** using `openstack_real.py` backed by a live cluster. This sprint covers all remaining SDK operations from the [official openstacksdk compute documentation](https://docs.openstack.org/openstacksdk/latest/user/proxies/compute.html) not yet exposed as FastAPI endpoints:
 
 **Availability Zone operations**
 - [ ] `GET /availability-zones` — `conn.compute.availability_zones()` — list all AZs
-- [ ] `GET /availability-zones/detail` — `conn.compute.availability_zones(details=True)` — list AZs with full host/service detail
+- [ ] `GET /availability-zones/detail` — `conn.compute.availability_zones(details=True)` — full host/service detail
 
 **Flavor operations**
 - [ ] `POST /flavors` — `conn.compute.create_flavor()` — create a custom flavor
@@ -706,15 +705,15 @@ The current prototype uses a mock service for local development. The long-term g
 
 **Server Group operations**
 - [ ] `GET /server-groups` — `conn.compute.server_groups()` — list server groups
-- [ ] `POST /server-groups` — `conn.compute.create_server_group()` — create server group (affinity/anti-affinity)
+- [ ] `POST /server-groups` — `conn.compute.create_server_group()` — create server group
 - [ ] `GET /server-groups/{id}` — `conn.compute.get_server_group()` — get server group
 - [ ] `DELETE /server-groups/{id}` — `conn.compute.delete_server_group()` — delete server group
 
 **Aggregate operations (admin)**
 - [ ] `GET /aggregates` — `conn.compute.aggregates()` — list host aggregates
 - [ ] `POST /aggregates` — `conn.compute.create_aggregate()` — create aggregate
-- [ ] `POST /aggregates/{id}/add-host` — `conn.compute.add_host_to_aggregate()` — add host
-- [ ] `POST /aggregates/{id}/remove-host` — `conn.compute.remove_host_from_aggregate()` — remove host
+- [ ] `POST /aggregates/{id}/add-host` — `conn.compute.add_host_to_aggregate()`
+- [ ] `POST /aggregates/{id}/remove-host` — `conn.compute.remove_host_from_aggregate()`
 
 **Quota operations (admin)**
 - [ ] `GET /quotas/{project_id}` — `conn.compute.get_quota_set()` — get project quotas
@@ -723,20 +722,23 @@ The current prototype uses a mock service for local development. The long-term g
 
 **Console / VNC operations**
 - [ ] `POST /vms/{id}/console-output` — `conn.compute.get_server_console_output()` — get console log text
-- [ ] `conn.compute.wait_for_server()` — poll until VM reaches target state (used internally for async flows)
+- [ ] `conn.compute.wait_for_server()` — poll until VM reaches target state (used internally)
 
 **Fixed IP operations**
-- [ ] `POST /vms/{id}/fixed-ips/add` — `conn.compute.add_fixed_ip_to_server()` — assign fixed IP from network
-- [ ] `POST /vms/{id}/fixed-ips/remove` — `conn.compute.remove_fixed_ip_from_server()` — remove fixed IP
+- [ ] `POST /vms/{id}/fixed-ips/add` — `conn.compute.add_fixed_ip_to_server()`
+- [ ] `POST /vms/{id}/fixed-ips/remove` — `conn.compute.remove_fixed_ip_from_server()`
 
 **Real OpenStack migration tasks**
 - [ ] Set `MOCK_OPENSTACK=false` as the new default
-- [ ] Integration tests against a DevStack or live cluster (not just mock)
+- [ ] Integration tests against a DevStack or live cluster
 - [ ] `conn.compute.wait_for_server()` used in all create/resize flows
 - [ ] Replace synthetic metrics with real Gnocchi/Ceilometer data
 - [ ] Validate all endpoint responses against real Nova API responses
 
+
+
 ---
+
 
 
 ## License
