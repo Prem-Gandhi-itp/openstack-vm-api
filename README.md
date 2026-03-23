@@ -736,22 +736,7 @@ The current prototype uses a mock service for local development. The long-term g
 - [ ] Replace synthetic metrics with real Gnocchi/Ceilometer data
 - [ ] Validate all endpoint responses against real Nova API responses
 
-### Sprint 6 — Scale & Reliability
-- [ ] **Multi-region support** — single API federating across OpenStack regions
-- [ ] **Database-backed inventory** — Postgres + SQLAlchemy for cross-cluster queries and caching
-- [ ] **Circuit breaker** — fail fast and serve cached state when OpenStack is unreachable
-- [ ] **Canary deployments** — progressive rollout with Argo Rollouts
-
-### Sprint 7 — Kubernetes & Production Deployment
-- [ ] **Kubernetes manifests** — Deployment, Service, Ingress, ConfigMap, Secrets
-- [ ] **Helm chart** — parameterized K8s deployment for different environments
-- [ ] **Horizontal Pod Autoscaler** — scale API pods based on CPU / request load
-- [ ] **Rolling deployments** — zero-downtime updates with `maxUnavailable: 0`
-- [ ] **Liveness and readiness probes** — K8s health checking via `/health` endpoint
-- [ ] **Ingress with TLS** — HTTPS termination via cert-manager + Let's Encrypt
-
 ---
-
 
 
 ## License
