@@ -8,14 +8,16 @@ on:
 
 jobs:
   test:
-    name: Test & Lint
+    name: Test & Lint (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.11", "3.12"]
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -24,45 +26,56 @@ jobs:
           cache: pip
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      - name: Lint with ruff
-        run: ruff check app/ tests/ || true   # non-blocking in PoC
+      - name: Lint with ruff (non-blocking)
+        run: ruff check app/ tests/ || true
 
-      - name: Format check with black
-        run: black --check app/ tests/ || true  # non-blocking in PoC
+      - name: Format check with black (non-blocking)
+        run: black --check app/ tests/ || true
 
-      - name: Run tests with coverage
+      - name: Run tests
         run: |
           pytest tests/ \
             --tb=short \
-            --cov=app \
-            --cov-report=xml \
-            --cov-report=term-missing
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        if: matrix.python-version == '3.11'
-        with:
-          file: coverage.xml
-          fail_ci_if_error: false
+            --no-header \
+            -q
 
   docker:
-    name: Docker Build
+    name: Docker Build & Health Check
     runs-on: ubuntu-latest
     needs: test
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Build Docker image
-        run: docker build -t openstack-vm-api:${{ github.sha }} .
+        run: docker build -t openstack-vm-api:latest .
 
-      - name: Test Docker health
+      - name: Start container
         run: |
-          docker run -d --name test-api -p 8000:8000 \
+          docker run -d \
+            --name test-api \
+            -p 8000:8000 \
             -e MOCK_OPENSTACK=true \
-            openstack-vm-api:${{ github.sha }}
-          sleep 5
-          curl -f http://localhost:8000/health || exit 1
-          docker stop test-api
+            openstack-vm-api:latest
+
+      - name: Wait for startup
+        run: sleep 8
+
+      - name: Health check
+        run: |
+          curl -f http://localhost:8000/health
+          echo ""
+          echo "Health check passed!"
+
+      - name: Show logs on failure
+        if: failure()
+        run: docker logs test-api
+
+      - name: Cleanup
+        if: always()
+        run: docker stop test-api || true
